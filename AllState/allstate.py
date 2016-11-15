@@ -1,67 +1,68 @@
-# This Python 3 environment comes with many helpful analytics libraries installed
-# It is defined by the kaggle/python docker image: https://github.com/kaggle/docker-python
-# For example, here's several helpful packages to load in 
-import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
-import seaborn as sns
-from time import time
-from sklearn.metrics import f1_score
-from pandas.tools.plotting import scatter_matrix
-from sklearn import preprocessing
-from IPython.display import display
-from statsmodels.graphics.mosaicplot import mosaic
+import numpy as np
+import xgboost as xgb
+
+from sklearn.metrics import mean_absolute_error
+
+train = pd.read_csv('./input/train.csv')
+test = pd.read_csv('./input/test.csv')
+test['loss'] = np.nan
+joined = pd.concat([train, test])
 
 
-# Input data files are available in the "../input/" directory.
-# For example, running this (by clicking run or pressing Shift+Enter) will list the files in the input directory
+def evalerror(preds, dtrain):
+    labels = dtrain.get_label()
+    return 'mae', mean_absolute_error(np.exp(preds), np.exp(labels))
 
-from subprocess import check_output
-print(check_output(["ls", "./"]).decode("utf8"))
-# Any results you write to the current directory are saved as output.
-train = pd.read_csv("./train.csv")
-train.describe(include = ['object'])
-display(train.head(5))
+if __name__ == '__main__':
+    for column in list(train.select_dtypes(include=['object']).columns):
+        if train[column].nunique() != test[column].nunique():
+            set_train = set(train[column].unique())
+            set_test = set(test[column].unique())
+            remove_train = set_train - set_test
+            remove_test = set_test - set_train
 
-loss = train['loss']
-features=train.drop('loss',axis=1)
-print ("dataset has {} data points with {} variables each.".format(*train.shape))
+            remove = remove_train.union(remove_test)
+            def filter_cat(x):
+                if x in remove:
+                    return np.nan
+                return x
 
-display(loss.describe())
-#display(features.describe())
-#observation max loss is hugh outlier
+            joined[column] = joined[column].apply(lambda x: filter_cat(x), 1)
+            
+        joined[column] = pd.factorize(joined[column].values, sort=True)[0]
 
+    train = joined[joined['loss'].notnull()]
+    test = joined[joined['loss'].isnull()]
 
-for i in train.columns:
-    if (train[i].isnull().sum() > 0):
-      print("missing data in feature {}", i)
+    shift = 200
+    y = np.log(train['loss'] + shift)
+    ids = test['id']
+    X = train.drop(['loss', 'id'], 1)
+    X_test = test.drop(['loss', 'id'], 1)
+    
+    RANDOM_STATE = 2016
+    params = {
+        'min_child_weight': 1,
+        'eta': 0.01,
+        'colsample_bytree': 0.5,
+        'max_depth': 12,
+        'subsample': 0.8,
+        'alpha': 1,
+        'gamma': 1,
+        'silent': 1,
+        'verbose_eval': True,
+        'seed': RANDOM_STATE
+    }
 
+    xgtrain = xgb.DMatrix(X, label=y)
+    xgtest = xgb.DMatrix(X_test)
 
-cont_columns = []
-cat_columns = []
+    model = xgb.train(params, xgtrain, int(2012 / 0.9), feval=evalerror)
 
-for i in train.columns:
-    if train[i].dtype == 'float':
-        cont_columns.append(i)
-    elif train[i].dtype == 'object':
-        cat_columns.append(i)
-print cont_columns
-print cat_columns
+    prediction = np.exp(model.predict(xgtest)) - shift
 
-
-plt.figure()
-sns.pairplot(train[cont_columns], vars=cont_columns, kind = 'scatter',diag_kind='kde')
-plt.show()
-        
-print cont_columns[1:10]
-#sns.jointplot(x='cont1',y='cont2',data=train)
-pd.scatter_matrix(train[cont_columns], alpha = 0.3, figsize = (14,8), diagonal = 'kde');
-plt.show()
-
-#for cat in cat_columns:
-#    sns.stripplot(x=cat,y='loss', data=train)
-#    plt.show()
-print cont_columns[1:10]
-
-
-       
+    submission = pd.DataFrame()
+    submission['loss'] = prediction
+    submission['id'] = ids
+    submission.to_csv('sub_v.csv', index=False)
