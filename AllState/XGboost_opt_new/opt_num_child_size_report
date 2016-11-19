@@ -1,0 +1,16 @@
+8315    8.693269
+188316    7.474698
+188317    8.507490
+Name: loss, dtype: float64
+y_val_pred [ 7.69459915  7.62593889  8.34725857 ...,  8.31817436  8.09990501
+  7.75540209]
+mean_absolute_error (Train): %f ('mae', 1228.9937939605586)
+mean_absolute_error (Train): %f ('mae', 1228.9937939605586)
+
+(313864, 132)
+[mean: -0.40123, std: 0.00141, params: {'max_depth': 3, 'min_child_weight': 1}, mean: -0.40125, std: 0.00140, params: {'max_depth': 3, 'min_child_weight': 3}, mean: -0.40131, std: 0.00142, params: {'max_depth': 3, 'min_child_weight': 5}] 
+
+{'max_depth': 3, 'min_child_weight': 1} 
+
+-0.401226836199 
+

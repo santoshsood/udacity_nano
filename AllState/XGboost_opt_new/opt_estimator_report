@@ -1,0 +1,5 @@
+Name: loss, dtype: float64
+y_val_pred [ 7.68596458  7.59039783  8.38924217 ...,  8.38329124  8.0755024
+  8.19333935]
+mean_absolute_error (Train): %f ('mae', 974.80868972429721)
+mean_absolute_error (Train): %f ('mae', 974.80868972429721)
