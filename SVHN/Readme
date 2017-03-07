@@ -1,0 +1,16 @@
+
+mnist_classifier
+Directory for scripts to downlaod mnist data, create synthetic sequence of digits from mnist data. Dunped as threee seperate pickle files for training, validation & test datasets.
+mnist_parse.py - script for creating synthetic data
+mnist_model_seq.py - tensorflow model for mnist classifier
+mnist_seq_classifier.py - mnist classifier for sequence of digits.
+
+
+svhn_classifier
+Directory for scripts to downlaod svhn data, create seperate npy files for training, validation & test datasets.
+svnh_parse_single.py - script for creating 32x32 single digits from svhn data
+svnh_parse_multi.py - script for creating 64x64 sequence of digits from svhn data
+svnh_single_classifier.py -Classifier for single digits.
+svnh_model_single.py - tensorflow model for single digit classifier.
+svnh_seq_classifier_mask.py - Classifier for sequence of digit.
+svnh_model_seq_mask.py - tensorflow model for sequence of digit classifier.
